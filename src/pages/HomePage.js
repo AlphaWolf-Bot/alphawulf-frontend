@@ -1,92 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import Header from '../components/Header';
-import Navigation from '../components/Navigation';
-import ProgressBar from '../components/ProgressBar';
-import TapToCoin from '../components/TapToCoin';
+// src/pages/Homepage.js
 
-const HomeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding-bottom: 60px; /* Space for navigation */
-`;
+import React, { useEffect, useState } from 'react';
+import api from '../api'; // Axios setup we created earlier
+import { TailSpin } from 'react-loader-spinner'; // Spinner library
 
-const Content = styled.div`
-  flex: 1;
-  padding: ${props => props.theme.spacing.md};
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-`;
+function HomePage() {
+  const [coins, setCoins] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-const HomePage = () => {
-  const [userData, setUserData] = useState({
-    level: 5,
-    experience: 65,
-    maxExperience: 100,
-    coins: 1250,
-    remainingTaps: 78,
-    maxTaps: 100,
-    lastTapReset: new Date().getTime()
-  });
-  
-  // Check if taps should be reset (every 4 hours)
   useEffect(() => {
-    const checkTapReset = () => {
-      const now = new Date().getTime();
-      const fourHoursInMs = 4 * 60 * 60 * 1000;
-      
-      if (now - userData.lastTapReset > fourHoursInMs) {
-        setUserData(prev => ({
-          ...prev,
-          remainingTaps: prev.maxTaps,
-          lastTapReset: now
-        }));
+    async function fetchCoins() {
+      try {
+        const response = await api.get('/api/user/balance');
+        setCoins(response.data.balance); // assuming backend sends { balance: 5000 }
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+      } finally {
+        setLoading(false);
       }
-    };
-    
-    checkTapReset();
-    const interval = setInterval(checkTapReset, 60000); // Check every minute
-    
-    return () => clearInterval(interval);
-  }, [userData.lastTapReset]);
-  
-  const handleTap = () => {
-    if (userData.remainingTaps > 0) {
-      setUserData(prev => ({
-        ...prev,
-        coins: prev.coins + 5,
-        remainingTaps: prev.remainingTaps - 1,
-        experience: Math.min(prev.maxExperience, prev.experience + 1)
-      }));
-      
-      // Call API to update user data
-      // This will be implemented when backend is ready
     }
-  };
-  
+
+    fetchCoins();
+  }, []);
+
   return (
-    <HomeContainer>
-      <Header title="ALPHA WULF" showBack={false} />
-      
-      <Content>
-        <ProgressBar 
-          current={userData.experience} 
-          max={userData.maxExperience} 
-          level={userData.level} 
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      {loading ? (
+        <TailSpin
+          height="80"
+          width="80"
+          color="blue"
+          ariaLabel="loading-spinner"
         />
-        
-        <TapToCoin 
-          onTap={handleTap} 
-          remainingTaps={userData.remainingTaps} 
-          maxTaps={userData.maxTaps} 
-        />
-      </Content>
-      
-      <Navigation activePage="HOME" />
-    </HomeContainer>
+      ) : (
+        <>
+          <h1>Welcome to AlphaWulf!</h1>
+          <h2>Your Coins: {coins}</h2>
+          <button style={{ marginTop: '20px' }}>Tap to Earn More!</button>
+        </>
+      )}
+    </div>
   );
-};
+}
 
 export default HomePage;
