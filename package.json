@@ -15,6 +15,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.5.0",
     "react-scripts": "5.0.1",
+    "react-loader-spinner": "^5.3.4",
     "styled-components": "^6.1.17",
     "telegram-web-app": "^0.0.0"
   },
